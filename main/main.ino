@@ -1,5 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+
+#include <EEPROM.h>
+
 #include "HAL/SN74HC595/SN74HC595_FUNs.h"
 
 #define Ser    2
@@ -23,7 +26,7 @@ String DATA_OUTPUT = "";
 boolean PORT_ADDED = false;
 boolean SERVER_CONN = false;
 
-uint8_t L_RELAY_STATE[3] = {0, 0, 0};
+uint8_t L_RELAY_STATE[3];
 uint8_t N_RELAY_STATE[3];
 
 SN74HC595 RELAYS;
@@ -32,11 +35,17 @@ HTTPClient http;
 
 void setup()
 {
+    EEPROM.begin(512);
+    Serial.begin(115200);
+
+    
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
     SN74HC595_INIT(&RELAYS);
-    Serial.begin(115200);
+    
+    Restore_Session();
+    
     WiFi.begin(ssid, password);
     Serial.print("\n\nConnecting");
     while (WiFi.status() != WL_CONNECTED)
@@ -149,11 +158,20 @@ void splitData(String ps, uint8_t* RELAYS){
     }
   }
 }
+
+void Restore_Session(){
+  for(int i = 0; i < 3; i++){
+    L_RELAY_STATE[i] = EEPROM.read(i+1);
+    N_RELAY_STATE[i] = L_RELAY_STATE[i];
+    SN74HC595_Write(&RELAYS, i+1, N_RELAY_STATE[i]);
+  }
+}
 void UPDATE_RELAYS(uint8_t* RELAYs){
   for(int i = 0; i < 3; i++){
     if(RELAYs[i] != L_RELAY_STATE[i]){
       SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
       L_RELAY_STATE[i] = RELAYs[i];
+      EEPROM.write(i+1, L_RELAY_STATE[i]);
     }
   }
 }

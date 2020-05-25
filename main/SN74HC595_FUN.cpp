@@ -13,11 +13,6 @@ unsigned char SN74HC595_INIT(SN74HC595 *SH_REG) {
   digitalWrite((SH_REG->SH_REG_P[SER])   , LOW);
   digitalWrite((SH_REG->SH_REG_P[RCLK])  , LOW);
   digitalWrite((SH_REG->SH_REG_P[SRCLK]) , LOW);
-
-  for (uint8 i = 0; i < SN74HC595_PCS_N; i++) {
-    SH_REG->OUT[i] = 0;
-  }
-  SN74HC595_Write(SH_REG, 0, 0);
 }
 unsigned char SN74HC595_RCLK(SN74HC595 *SH_REG) {
   digitalWrite((SH_REG->SH_REG_P[RCLK]) , LOW);
