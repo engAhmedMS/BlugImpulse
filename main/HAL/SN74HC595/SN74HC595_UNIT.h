@@ -12,9 +12,9 @@
 #define RCLK            1
 #define SRCLK           2
 
-#define set_bit(Bit,Num)   Bit & ~(1<<Num)
-#define clr_bit(Bit,Num)   Bit |  (1<<Num)
-#define get_bit(Bit, Num) (Bit & (1<<Num)) && 1
+#define set_bit(BYTE, Bit)  BYTE |=  (1<<Bit)
+#define clr_bit(BYTE, Bit)  BYTE &= ~(1<<Bit)
+#define get_bit(BYTE, Bit) (BYTE & (1<<Bit)) && 1
 
 //#define OE              3
 //#define SRCLR           4

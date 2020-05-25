@@ -26,8 +26,6 @@ String DATA_OUTPUT = "";
 boolean PORT_ADDED = false;
 boolean SERVER_CONN = false;
 
-uint8_t RELAY_STATE0, RELAY_STATE1, RELAY_STATE2;
-
 uint8_t L_RELAY_STATE[3];
 
 SN74HC595 RELAYS;
@@ -155,6 +153,10 @@ void splitData(String ps, uint8_t* RELAYS){
 }
 void UPDATE_RELAYS(uint8_t* RELAYs){
   for(int i = 0; i < 3; i++){
+//    Serial.print("Relay : ");
+//    Serial.print(i);
+//    Serial.print(" : ");
+//    Serial.println(RELAYs[i]);
     SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
   }
 }

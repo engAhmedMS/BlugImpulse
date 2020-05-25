@@ -20,16 +20,20 @@ unsigned char SN74HC595_INIT(SN74HC595 *SH_REG) {
 }
 unsigned char SN74HC595_RCLK(SN74HC595 *SH_REG) {
   digitalWrite((SH_REG->SH_REG_P[RCLK]) , LOW);
+//  delayMicroseconds(1);
   digitalWrite((SH_REG->SH_REG_P[RCLK]) , HIGH);
+//  delayMicroseconds(1);
 }
 unsigned char SN74HC595_SRCLK(SN74HC595 *SH_REG) {
   digitalWrite((SH_REG->SH_REG_P[SRCLK]) , LOW);
+  delayMicroseconds(1);
   digitalWrite((SH_REG->SH_REG_P[SRCLK]) , HIGH);
+  delayMicroseconds(1);
 }
 unsigned char SN74HC595_Write(SN74HC595 *SH_REG, unsigned char PIN_NUM, unsigned char STATE) {
-  
-  uint8 SH_REG_UNIT = PIN_NUM / 8;
-  uint8 SH_REG_PIN  = PIN_NUM % 8;
+
+  uint8_t SH_REG_UNIT = PIN_NUM / 8;
+  uint8_t SH_REG_PIN  = PIN_NUM % 8;
 
   if (STATE == HIGH) {
     set_bit(SH_REG->OUT[SH_REG_UNIT], SH_REG_PIN);
@@ -37,10 +41,18 @@ unsigned char SN74HC595_Write(SN74HC595 *SH_REG, unsigned char PIN_NUM, unsigned
   else {
     clr_bit(SH_REG->OUT[SH_REG_UNIT], SH_REG_PIN);
   }
-  
-  for (uint8 UNIT = 0; UNIT < SN74HC595_PCS_N; UNIT++) {
-    for (uint8 BIT = 0; BIT < 8; BIT++) {
-      digitalWrite((SH_REG->SH_REG_P[SER]), get_bit(SH_REG->OUT[SN74HC595_PCS_N - UNIT - 1], 7 - BIT));
+
+  for (unsigned char UNIT = 0; UNIT < SN74HC595_PCS_N; UNIT++) {
+    for (int BIT = 7; BIT >= 0; BIT--) {
+//      Serial.print(UNIT);
+//      Serial.print(" : ");
+//      Serial.print(BIT);
+//      Serial.print(" : ");
+//      Serial.println(get_bit(SH_REG->OUT[SN74HC595_PCS_N - UNIT - 1], BIT));
+//      delay(10);
+      digitalWrite((SH_REG->SH_REG_P[SER]), get_bit(SH_REG->OUT[SN74HC595_PCS_N - UNIT - 1], BIT));
+
+//      delayMicroseconds(1);
       SN74HC595_SRCLK(SH_REG);
     }
   }
