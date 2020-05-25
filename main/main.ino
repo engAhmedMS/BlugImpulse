@@ -35,7 +35,7 @@ HTTPClient http;
 
 void setup()
 {
-    EEPROM.begin(512);
+//    EEPROM.begin(512);
     Serial.begin(115200);
 
     
@@ -60,11 +60,13 @@ void loop()
 {
     if (WiFi.status() == WL_CONNECTED)
     {
-        if (!SERVER_CONN)
+        if (!SERVER_CONN){
             Serial.println(get_port() ? "connected to the server.." : ERROR_MSG);
+        }
         if (SERVER_CONN)
         {
-            Serial.println(get_data() ? DATA_OUTPUT : ERROR_MSG);
+            get_data();
+//            Serial.println(get_data() ? DATA_OUTPUT : ERROR_MSG);
         }
         delay(200); // delay for updateing status ..
     }
@@ -160,18 +162,22 @@ void splitData(String ps, uint8_t* RELAYS){
 }
 
 void Restore_Session(){
+  EEPROM.begin(512);
   for(int i = 0; i < 3; i++){
     L_RELAY_STATE[i] = EEPROM.read(i+1);
     N_RELAY_STATE[i] = L_RELAY_STATE[i];
     SN74HC595_Write(&RELAYS, i+1, N_RELAY_STATE[i]);
   }
+  EEPROM.end();
 }
 void UPDATE_RELAYS(uint8_t* RELAYs){
   for(int i = 0; i < 3; i++){
     if(RELAYs[i] != L_RELAY_STATE[i]){
+      EEPROM.begin(512);
       SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
       L_RELAY_STATE[i] = RELAYs[i];
       EEPROM.write(i+1, L_RELAY_STATE[i]);
+      EEPROM.end();
     }
   }
 }
