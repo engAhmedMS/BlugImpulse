@@ -6,9 +6,6 @@
 #define Rclk   4
 #define Srclk  5
 
-volatile bool SN7HC595_BITS[8];
-
-
 int changes[] = {0, 0, 0}; // you have to update this array once the state is changeged
 
 const char *ERROR_MSG = "Error occured on connectiong the server";
@@ -27,6 +24,7 @@ boolean PORT_ADDED = false;
 boolean SERVER_CONN = false;
 
 uint8_t L_RELAY_STATE[3];
+uint8_t N_RELAY_STATE[3];
 
 SN74HC595 RELAYS;
 
@@ -61,7 +59,7 @@ void loop()
         }
         delay(200); // delay for updateing status ..
     }
-    splitData(DATA_OUTPUT, L_RELAY_STATE);
+    splitData(DATA_OUTPUT, N_RELAY_STATE);
     UPDATE_RELAYS(L_RELAY_STATE);
     //end_connection();
 }
@@ -153,11 +151,9 @@ void splitData(String ps, uint8_t* RELAYS){
 }
 void UPDATE_RELAYS(uint8_t* RELAYs){
   for(int i = 0; i < 3; i++){
-//    Serial.print("Relay : ");
-//    Serial.print(i);
-//    Serial.print(" : ");
-//    Serial.println(RELAYs[i]);
-    SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
+    if(RELAYs[i] != L_RELAY_STATE[i]){
+      SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
+    }
   }
 }
 
