@@ -4,12 +4,12 @@
 #define SET_BIT(REG, PIN)   (REG |= (1<<PIN))
 #define CLR_BIT(REG, PIN)   (REG &= (~(1<<PIN)))
 
-touchSensor::touchSensor(char* arr_pins, int* arr_reads, int thr)
+touchSensor::touchSensor(char* arr_pins, int* arr_reads, int thr, char num_sens)
 {
     threshold = thr;
     pins = arr_pins;
     reads = arr_reads;
-    Number_sensors = 8; //sizeof(arr_pins);
+    Number_sensors = num_sens; //sizeof(arr_pins);
 }
 
 

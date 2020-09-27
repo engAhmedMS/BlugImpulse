@@ -15,7 +15,7 @@ class touchSensor
 
   
   public:
-    touchSensor(char* arr_pins, int* arr_reads, int thr);
+    touchSensor(char* arr_pins, int* arr_reads, int thr, char num_sens);
     
     void attach();
     

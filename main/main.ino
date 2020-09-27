@@ -37,8 +37,18 @@ HTTPClient http;
 #define NUMBER_TOUCH_SENSORS 8
 #define THRESHOLD  40
 char touch_pins[NUMBER_TOUCH_SENSORS] = {T0, T3, T4, T5, T6, T7, T8, T9};
-char led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
+int led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
 int t_read[NUMBER_TOUCH_SENSORS];
+touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
+
+#define PWM_CHANNEL (0)
+#define PWM_FREQ  (5000)
+#define PWM_RESOLUTION  (8)
+#define PWM_MAX (255)
+#define LED_PIN (23)
+
+#define READ_BIT(REG, PIN) ((REG>>PIN)&1)
+
 
 void setup()
 {
@@ -60,6 +70,9 @@ void setup()
         Serial.print(".");
     }
     Serial.println("\nConnected to the network ...");
+    touch.attach();
+    ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_FREQ);
+    ledcAttachPin(LED_PIN, PWM_CHANNEL);
 }
 
 void loop()
@@ -77,6 +90,9 @@ void loop()
         delay(200); // delay for updateing status ..
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
+    int p = touch.pressed();
+    slider(p);
+    
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection();
 }
@@ -219,4 +235,19 @@ String form(int *data, int n)
         res += "RELAY" + String(i) + ":" + String(data[i]) + (i == n - 1 ? "" : ",");
     }
     return res;
+}
+
+char slider(int p)
+{
+  #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
+  int i=NUMBER_TOUCH_SENSORS;
+  for(; i>=0; i--)
+  {
+    if(READ_BIT(p, i))
+    {
+      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
+      break;
+    }
+  }
+  return i;  
 }
