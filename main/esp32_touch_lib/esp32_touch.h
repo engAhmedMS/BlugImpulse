@@ -1,23 +1,27 @@
 #ifndef ESP32_TOUCH_H__
 #define ESP32_TOUCH_H__
 #include "Arduino.h"
+
+#define MAX_NUMBER_OF_SENSORS 10
+
 class touchSensor
 {
   private:
-    char pinNumber;
     int  threshold;
     char Number_sensors;
-    char value;
+    int* reads;
+    int  press;
+    char* pins;
 
   
   public:
-    touchSensor(char pinNum, int thr);
+    touchSensor(char* arr_pins, int* arr_reads, int thr);
     
     void attach();
     
     int read();
     
-    bool pressed();
+    int pressed();
 
     void setThreshold(int thr);
     

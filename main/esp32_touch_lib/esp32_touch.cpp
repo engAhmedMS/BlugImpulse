@@ -1,37 +1,47 @@
 #include "Arduino.h"
 #include "esp32_touch.h"
 
-touchSensor::touchSensor(char pinNum, int thr)
+#define SET_BIT(REG, PIN)   (REG |= (1<<PIN))
+#define CLR_BIT(REG, PIN)   (REG &= (~(1<<PIN)))
+
+touchSensor::touchSensor(char* arr_pins, int* arr_reads, int thr)
 {
     threshold = thr;
-    pinNumber = pinNum;
+    pins = arr_pins;
+    reads = arr_reads;
+    Number_sensors = 8; //sizeof(arr_pins);
 }
 
 
 void touchSensor::attach()
 {
-    Number_sensors++;
+    Number_sensors=Number_sensors;
 }
 
 int touchSensor::read()
 {
-    value = touchRead(pinNumber); 
-    return value; 
+    for(int i=0; i<Number_sensors; i++)
+    {
+        reads[i] = touchRead(pins[i]);
+    }
+    return 1; 
 }
 
-bool touchSensor::pressed()
+int touchSensor::pressed()
 {
-    value = touchRead(pinNumber);
-    bool ret;
-    if(value < threshold)
+    for(int i=0; i<Number_sensors; i++)
     {
-        ret = 1;  
+        if( touchRead(pins[i]) < threshold )
+        {
+            SET_BIT(press, i);
+        }
+        else
+        {
+            CLR_BIT(press, i);
+        }
     }
-    else
-    {
-        ret = 0;  
-    }
-    return ret;
+    
+    return press;
 }
 
 void touchSensor::setThreshold(int thr)
