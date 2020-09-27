@@ -1,5 +1,6 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "esp32_touch.h"
 
 #include <EEPROM.h>
 
