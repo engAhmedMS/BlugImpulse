@@ -90,7 +90,9 @@ void loop()
         delay(200); // delay for updateing status ..
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
+    
     int p = touch.pressed();
+    Serial.println(p);
     slider(p);
     
     UPDATE_RELAYS(N_RELAY_STATE);
