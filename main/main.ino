@@ -58,6 +58,7 @@ void setup()
       IPAddress IP = accessPoint_init(access_ssid, access_password);
       Serial.print("AP IP address: ");
       Serial.println(IP);
+      server.begin();
       Serial.println("Server started");
     }
     
@@ -88,118 +89,14 @@ void loop()
     //end_connection(http);
 }
 
-CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s)
+
+
+
+
+
+
+void Restore_Session()
 {
-  int counter = 0;
-  CONNECTION_STATE ret = NOT_CONNECTED;
-  WiFi.begin(ssid, password);
-  Serial.print("\n\nConnecting");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-      delay(1000);
-      Serial.print(".");
-      ret = CONNECTED;
-      counter++;
-      if(counter>max_time_s)
-      {
-         ret = NOT_CONNECTED;
-         break;
-      }
-  }
-
-  return ret;
-}
-
-int get_port(const char* ssid, const char* password,HTTPClient* http)
-{
-    WiFi.begin(ssid, password);
-    Serial.print("\n\nConnecting");
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        Serial.println("Getting the `PORT`...");
-        http->begin(INIT_CONNECTION);
-        int httpCode = http->GET();
-        if (httpCode > 0)
-        {
-            PORT = http->getString();
-            if(PORT == ""){
-              Serial.println(ERROR_MSG);
-              SERVER_CONN = false;
-              return 0;
-            }
-            Serial.print("YOU ARE CONNECTED ON PORT :: ");
-            Serial.println(PORT);
-            SERVER_CONN = true;
-            if (!PORT_ADDED)
-            {
-                UPDATE_REQ += PORT;
-                END_CONNECTION += PORT;
-                PORT_ADDED = true;
-            }
-        }
-        else
-        {
-            Serial.println(ERROR_MSG);
-            SERVER_CONN = false;
-            return 0;
-        }
-        http->end();
-        return 1;
-    }
-    return 0;
-}
-
-int get_data(HTTPClient* http)
-{
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        http->begin(UPDATE_REQ);
-        int httpCode = http->GET();
-        if (httpCode > 0)
-        {
-            DATA_OUTPUT = http->getString();
-            SERVER_CONN = true;
-        }
-        else
-        {
-            Serial.println(ERROR_MSG);
-            SERVER_CONN = false;
-            return 0;
-        }
-        http->end();
-        return 1;
-    }
-    return 0;
-}
-
-int end_connection(HTTPClient* http)
-{
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        Serial.println("Ending the connnection..");
-        http->begin(END_CONNECTION);
-        int httpCode = http->GET();
-        if (httpCode > 0)
-            Serial.print("CONNECTION ENDED");
-        SERVER_CONN = false;
-        http->end();
-    }
-}
-
-void splitData(String ps, uint8_t* RELAYS){
-  int i = 0;
-  if(ps[0] != 'R'){
-    return;
-  }
-  else{
-    for(int j = 0; j < NUMBER_RELAYS; j++){
-      while((ps[i++]) != ':');
-      RELAYS[j] = ps[i] - '0';
-    }
-  }
-}
-
-void Restore_Session(){
   EEPROM.begin(512);
   for(int i = 0; i < NUMBER_RELAYS; i++){
     L_RELAY_STATE[i] = EEPROM.read(i+1);
@@ -209,7 +106,8 @@ void Restore_Session(){
   EEPROM.end();
 }
 
-void UPDATE_RELAYS(uint8_t* RELAYs){
+void UPDATE_RELAYS(uint8_t* RELAYs)
+{
   for(int i = 0; i < NUMBER_RELAYS; i++){
     if(RELAYs[i] != L_RELAY_STATE[i]){
       EEPROM.begin(512);
@@ -242,38 +140,3 @@ int update_changes()
         http.end();
     }
 }
-
-
-String form(int *data, int n)
-{
-    String res = "";
-    for (int i = 0; i < n; i++)
-    {
-        res += "RELAY" + String(i) + ":" + String(data[i]) + (i == n - 1 ? "" : ",");
-    }
-    return res;
-}
-
-char slider(int p)
-{
-  #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
-  int i=NUMBER_TOUCH_SENSORS;
-  for(; i>=0; i--)
-  {
-    if(READ_BIT(p, i))
-    {
-      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
-      break;
-    }
-  }
-  return i;  
-}
-
-IPAddress accessPoint_init(const char* ssid, const char* password)
-{
-  WiFi.softAP(ssid, password);
-  IPAddress IP = WiFi.softAPIP();
-  server.begin();
-
-  return IP;
-  }

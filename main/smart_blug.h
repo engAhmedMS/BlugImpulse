@@ -26,22 +26,14 @@
 //helper define to set max time for trying to connect esp as station
 #define MAX_CONNECTION_TIME 10
 
-int changes[NUMBER_RELAYS] = {0, 0, 0}; // you have to update this array once the state is changeged
-
-//ESP32 as a station
-const char *ERROR_MSG = "Error occured on connectiong the server";
-const char *INIT_CONNECTION = "http://impulses-iot.herokuapp.com/?action=init-connection&username=tmp&password=1234";
 
 
-String UPDATE_REQ = "http://impulses-iot.herokuapp.com/?action=get-state&port=";          // +PORT
-String END_CONNECTION = "http://impulses-iot.herokuapp.com/?action=end-connection&port="; // +PORT
-String UPDATE_CHANGES = "http://impulses-iot.herokuapp.com/?action=update-changes&port="; // +port + changes
-String GET_CHANGES = "http://impulses-iot.herokuapp.com/?action=get-changes&port=";       // +port
-String PORT = "";
-String DATA_OUTPUT = "";
 
-boolean PORT_ADDED = false;
-boolean SERVER_CONN = false;
+
+
+
+
+
 
 typedef enum
 {
