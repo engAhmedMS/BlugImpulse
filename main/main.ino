@@ -82,7 +82,7 @@ void loop()
     if (WiFi.status() == WL_CONNECTED)
     {
         if (!SERVER_CONN){
-            Serial.println(get_port() ? "connected to the server.." : ERROR_MSG);
+            Serial.println(get_port(ssid, password, &http) ? "connected to the server.." : ERROR_MSG);
         }
         if (SERVER_CONN)
         {
@@ -96,16 +96,18 @@ void loop()
     //end_connection();
 }
 
-int get_port()
+int get_port(const char* ssid, const char* password,HTTPClient* http)
 {
+    WiFi.begin(ssid, password);
+    Serial.print("\n\nConnecting");
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.println("Getting the `PORT`...");
-        http.begin(INIT_CONNECTION);
-        int httpCode = http.GET();
+        http->begin(INIT_CONNECTION);
+        int httpCode = http->GET();
         if (httpCode > 0)
         {
-            PORT = http.getString();
+            PORT = http->getString();
             if(PORT == ""){
               Serial.println(ERROR_MSG);
               SERVER_CONN = false;
@@ -127,7 +129,7 @@ int get_port()
             SERVER_CONN = false;
             return 0;
         }
-        http.end();
+        http->end();
         return 1;
     }
     return 0;
