@@ -1,77 +1,46 @@
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <WiFiClient.h>
-#include <WiFiAP.h>
-#include "esp32_touch.h"
-#include <EEPROM.h>
-#include "HAL/SN74HC595/SN74HC595_FUNs.h"
+#include "smart_blug.h"
 
-//Relay Shift register parameters
-#define Ser    2
-#define Rclk   4
-#define Srclk  5
-#define NUMBER_RELAYS 3
-
-int changes[NUMBER_RELAYS] = {0, 0, 0}; // you have to update this array once the state is changeged
-
-const char *ERROR_MSG = "Error occured on connectiong the server";
-const char *INIT_CONNECTION = "http://impulses-iot.herokuapp.com/?action=init-connection&username=tmp&password=12NUMBER_RELAYS4";
+extern int changes[NUMBER_RELAYS]; 
+//ESP32 as a station
+extern const char *ERROR_MSG;
+extern const char *INIT_CONNECTION;
 const char *ssid = "TE-Data-BFF2B2";    // network name
 const char *password = "azharOTHMan7"; // network pass
 
-String UPDATE_REQ = "http://impulses-iot.herokuapp.com/?action=get-state&port=";          // +PORT
-String END_CONNECTION = "http://impulses-iot.herokuapp.com/?action=end-connection&port="; // +PORT
-String UPDATE_CHANGES = "http://impulses-iot.herokuapp.com/?action=update-changes&port="; // +port + changes
-String GET_CHANGES = "http://impulses-iot.herokuapp.com/?action=get-changes&port=";       // +port
-String PORT = "";
-String DATA_OUTPUT = "";
+extern String UPDATE_REQ;
+extern String END_CONNECTION;
+extern String UPDATE_CHANGES;
+extern String GET_CHANGES;
+extern String PORT;
+extern String DATA_OUTPUT;
 
-boolean PORT_ADDED = false;
-boolean SERVER_CONN = false;
+extern boolean PORT_ADDED;
+extern boolean SERVER_CONN;
+
+//ESP32 as access poin
+const char *access_ssid = "yourAP";
+const char *access_password = "yourPassword";
 
 uint8_t L_RELAY_STATE[NUMBER_RELAYS];
 uint8_t N_RELAY_STATE[NUMBER_RELAYS];
 
+WiFiServer server(80);
 SN74HC595 RELAYS;
-
 HTTPClient http;
-
-//touch sensor parameters
-#define NUMBER_TOUCH_SENSORS 8
-#define THRESHOLD  40
-//PWM parameters
-#define PWM_CHANNEL (0)
-#define PWM_FREQ  (5000)
-#define PWM_RESOLUTION  (8)
-#define PWM_MAX (255)
-#define LED_PIN (23)
-//Helper macro fumction
-#define READ_BIT(REG, PIN) ((REG>>PIN)&1)
 
 char touch_pins[NUMBER_TOUCH_SENSORS] = {T0, T3, T4, T5, T6, T7, T8, T9};
 int led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
 int t_read[NUMBER_TOUCH_SENSORS];
 touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
-WiFiServer server(80);
-//ESP32 as access poin
-const char *access_ssid = "yourAP";
-const char *access_password = "yourPassword";
-//helper define to set max time for trying to connect esp as station
-#define MAX_CONNECTION_TIME 10
 
-typedef enum
-{
-    NOT_CONNECTED,
-    CONNECTED,
+int counter = 0;
 
-}CONNECTION_STATE;
-
+CONNECTION_STATE connection_state;
 void setup()
 {
 //    EEPROM.begin(512);
     Serial.begin(115200);
 
-    
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
@@ -79,7 +48,7 @@ void setup()
     
     Restore_Session();
     
-    CONNECTION_STATE connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
+    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
     if(connection_state == CONNECTED)
     {
       Serial.println("\nConnected to the network ...");
@@ -91,7 +60,7 @@ void setup()
       Serial.println(IP);
       Serial.println("Server started");
     }
-
+    
     touch.attach();
     ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_FREQ);
     ledcAttachPin(LED_PIN, PWM_CHANNEL);
@@ -112,10 +81,33 @@ void loop()
         delay(200); // delay for updateing status ..
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
+    
     int p = touch.pressed();
     slider(p);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
+}
+
+CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s)
+{
+  int counter = 0;
+  CONNECTION_STATE ret = NOT_CONNECTED;
+  WiFi.begin(ssid, password);
+  Serial.print("\n\nConnecting");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+      delay(1000);
+      Serial.print(".");
+      ret = CONNECTED;
+      counter++;
+      if(counter>max_time_s)
+      {
+         ret = NOT_CONNECTED;
+         break;
+      }
+  }
+
+  return ret;
 }
 
 int get_port(const char* ssid, const char* password,HTTPClient* http)
@@ -216,6 +208,7 @@ void Restore_Session(){
   }
   EEPROM.end();
 }
+
 void UPDATE_RELAYS(uint8_t* RELAYs){
   for(int i = 0; i < NUMBER_RELAYS; i++){
     if(RELAYs[i] != L_RELAY_STATE[i]){
@@ -276,7 +269,6 @@ char slider(int p)
   return i;  
 }
 
-
 IPAddress accessPoint_init(const char* ssid, const char* password)
 {
   WiFi.softAP(ssid, password);
@@ -285,25 +277,3 @@ IPAddress accessPoint_init(const char* ssid, const char* password)
 
   return IP;
   }
-
-CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s)
-{
-  int counter = 0;
-  CONNECTION_STATE ret = NOT_CONNECTED;
-  WiFi.begin(ssid, password);
-  Serial.print("\n\nConnecting");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-      delay(1000);
-      Serial.print(".");
-      ret = CONNECTED;
-      counter++;
-      if(counter>max_time_s)
-      {
-         ret = NOT_CONNECTED;
-         break;
-      }
-  }
-
-  return ret;
-}
