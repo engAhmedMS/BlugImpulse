@@ -89,6 +89,10 @@ void setup()
       Serial.println(IP);
       Serial.println("Server started");
     }
+
+    touch.attach();
+    ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_FREQ);
+    ledcAttachPin(LED_PIN, PWM_CHANNEL);
 }
 
 void loop()
@@ -106,6 +110,8 @@ void loop()
         delay(200); // delay for updateing status ..
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
+    int p = touch.pressed();
+    slider(p);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
