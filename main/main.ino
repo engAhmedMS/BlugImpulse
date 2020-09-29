@@ -56,6 +56,8 @@ WiFiServer server(80);
 //ESP32 as access poin
 const char *access_ssid = "yourAP";
 const char *access_password = "yourPassword";
+//helper define to set max time for trying to connect esp as station
+#define MAX_CONNECTION_TIME 10
 
 typedef enum
 {
@@ -77,7 +79,7 @@ void setup()
     
     Restore_Session();
     
-    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
+    CONNECTION_STATE connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
     if(connection_state == CONNECTED)
     {
       Serial.println("\nConnected to the network ...");
