@@ -57,6 +57,13 @@ WiFiServer server(80);
 const char *access_ssid = "yourAP";
 const char *access_password = "yourPassword";
 
+typedef enum
+{
+    NOT_CONNECTED,
+    CONNECTED,
+
+}CONNECTION_STATE;
+
 void setup()
 {
 //    EEPROM.begin(512);
@@ -70,14 +77,18 @@ void setup()
     
     Restore_Session();
     
-    WiFi.begin(ssid, password);
-    Serial.print("\n\nConnecting");
-    while (WiFi.status() != WL_CONNECTED)
+    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
+    if(connection_state == CONNECTED)
     {
-        delay(1000);
-        Serial.print(".");
+      Serial.println("\nConnected to the network ...");
     }
-    Serial.println("\nConnected to the network ...");
+    else
+    {
+      IPAddress IP = accessPoint_init(access_ssid, access_password);
+      Serial.print("AP IP address: ");
+      Serial.println(IP);
+      Serial.println("Server started");
+    }
 }
 
 void loop()
@@ -266,3 +277,25 @@ IPAddress accessPoint_init(const char* ssid, const char* password)
 
   return IP;
   }
+
+CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s)
+{
+  int counter = 0;
+  CONNECTION_STATE ret = NOT_CONNECTED;
+  WiFi.begin(ssid, password);
+  Serial.print("\n\nConnecting");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+      delay(1000);
+      Serial.print(".");
+      ret = CONNECTED;
+      counter++;
+      if(counter>max_time_s)
+      {
+         ret = NOT_CONNECTED;
+         break;
+      }
+  }
+
+  return ret;
+}
