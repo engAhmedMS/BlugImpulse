@@ -48,6 +48,12 @@ HTTPClient http;
 //Helper macro fumction
 #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
 
+char touch_pins[NUMBER_TOUCH_SENSORS] = {T0, T3, T4, T5, T6, T7, T8, T9};
+int led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
+int t_read[NUMBER_TOUCH_SENSORS];
+touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
+
+
 void setup()
 {
 //    EEPROM.begin(512);
