@@ -36,6 +36,18 @@ SN74HC595 RELAYS;
 
 HTTPClient http;
 
+//touch sensor parameters
+#define NUMBER_TOUCH_SENSORS 8
+#define THRESHOLD  40
+//PWM parameters
+#define PWM_CHANNEL (0)
+#define PWM_FREQ  (5000)
+#define PWM_RESOLUTION  (8)
+#define PWM_MAX (255)
+#define LED_PIN (23)
+//Helper macro fumction
+#define READ_BIT(REG, PIN) ((REG>>PIN)&1)
+
 void setup()
 {
 //    EEPROM.begin(512);
@@ -216,4 +228,19 @@ String form(int *data, int n)
         res += "RELAY" + String(i) + ":" + String(data[i]) + (i == n - 1 ? "" : ",");
     }
     return res;
+}
+
+char slider(int p)
+{
+  #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
+  int i=NUMBER_TOUCH_SENSORS;
+  for(; i>=0; i--)
+  {
+    if(READ_BIT(p, i))
+    {
+      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
+      break;
+    }
+  }
+  return i;  
 }
