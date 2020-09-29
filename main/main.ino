@@ -86,7 +86,7 @@ void loop()
         }
         if (SERVER_CONN)
         {
-            get_data();
+            get_data(&http);
 //            Serial.println(get_data() ? DATA_OUTPUT : ERROR_MSG);
         }
         delay(200); // delay for updateing status ..
@@ -135,15 +135,15 @@ int get_port(const char* ssid, const char* password,HTTPClient* http)
     return 0;
 }
 
-int get_data()
+int get_data(HTTPClient* http)
 {
     if (WiFi.status() == WL_CONNECTED)
     {
-        http.begin(UPDATE_REQ);
-        int httpCode = http.GET();
+        http->begin(UPDATE_REQ);
+        int httpCode = http->GET();
         if (httpCode > 0)
         {
-            DATA_OUTPUT = http.getString();
+            DATA_OUTPUT = http->getString();
             SERVER_CONN = true;
         }
         else
@@ -152,12 +152,11 @@ int get_data()
             SERVER_CONN = false;
             return 0;
         }
-        http.end();
+        http->end();
         return 1;
     }
     return 0;
 }
-
 int end_connection()
 {
     if (WiFi.status() == WL_CONNECTED)
