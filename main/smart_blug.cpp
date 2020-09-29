@@ -141,10 +141,25 @@ String form(int *data, int n)
 char slider(int p)
 {
   #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
-  int i=NUMBER_TOUCH_SENSORS;
+  int i=NUMBER_TOUCH_SENSORS-1;
   for(; i>=0; i--)
   {
     if(READ_BIT(p, i))
+    {
+      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
+      break;
+    }
+  }
+  return i;  
+}
+
+char slider2(int* arr_read)
+{
+  
+  int i=NUMBER_TOUCH_SENSORS-1;
+  for(; i>=0; i--)
+  {
+    if(arr_read[i]<THRESHOLD)
     {
       ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
       break;

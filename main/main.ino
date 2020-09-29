@@ -83,8 +83,15 @@ void loop()
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     
+    touch.read();
+    for(int i=0; i<NUMBER_TOUCH_SENSORS; i++)
+    {
+      Serial.print(t_read[i]);
+      Serial.print(" -- ");
+    }
     int p = touch.pressed();
-    slider(p);
+    Serial.println(p);
+    slider2(t_read);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
