@@ -93,7 +93,7 @@ void loop()
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     UPDATE_RELAYS(N_RELAY_STATE);
-    //end_connection();
+    //end_connection(http);
 }
 
 int get_port(const char* ssid, const char* password,HTTPClient* http)
@@ -157,19 +157,21 @@ int get_data(HTTPClient* http)
     }
     return 0;
 }
-int end_connection()
+
+int end_connection(HTTPClient* http)
 {
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.println("Ending the connnection..");
-        http.begin(END_CONNECTION);
-        int httpCode = http.GET();
+        http->begin(END_CONNECTION);
+        int httpCode = http->GET();
         if (httpCode > 0)
             Serial.print("CONNECTION ENDED");
         SERVER_CONN = false;
-        http.end();
+        http->end();
     }
 }
+
 void splitData(String ps, uint8_t* RELAYS){
   int i = 0;
   if(ps[0] != 'R'){
