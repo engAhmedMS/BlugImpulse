@@ -52,7 +52,10 @@ char touch_pins[NUMBER_TOUCH_SENSORS] = {T0, T3, T4, T5, T6, T7, T8, T9};
 int led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
 int t_read[NUMBER_TOUCH_SENSORS];
 touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
-
+WiFiServer server(80);
+//ESP32 as access poin
+const char *access_ssid = "yourAP";
+const char *access_password = "yourPassword";
 
 void setup()
 {
@@ -253,3 +256,13 @@ char slider(int p)
   }
   return i;  
 }
+
+
+IPAddress accessPoint_init(const char* ssid, const char* password)
+{
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
+  server.begin();
+
+  return IP;
+  }
