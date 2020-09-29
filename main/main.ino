@@ -1,4 +1,8 @@
+
 #include "smart_blug.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "esp32_touch.h"
 
 extern int changes[NUMBER_RELAYS]; 
 //ESP32 as a station
@@ -36,6 +40,7 @@ touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
 int counter = 0;
 
 CONNECTION_STATE connection_state;
+
 void setup()
 {
 //    EEPROM.begin(512);
@@ -82,7 +87,6 @@ void loop()
         delay(200); // delay for updateing status ..
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
-    
     touch.read();
     for(int i=0; i<NUMBER_TOUCH_SENSORS; i++)
     {
@@ -91,14 +95,10 @@ void loop()
     }
     int p = touch.pressed();
     Serial.println(p);
-    slider2(t_read);
+    slider(t_read);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
-
-
-
-
 
 
 
