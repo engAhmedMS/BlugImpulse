@@ -6,14 +6,16 @@
 #include <EEPROM.h>
 #include "HAL/SN74HC595/SN74HC595_FUNs.h"
 
+//Relay Shift register parameters
 #define Ser    2
 #define Rclk   4
 #define Srclk  5
+#define NUMBER_RELAYS 3
 
-int changes[] = {0, 0, 0}; // you have to update this array once the state is changeged
+int changes[NUMBER_RELAYS] = {0, 0, 0}; // you have to update this array once the state is changeged
 
 const char *ERROR_MSG = "Error occured on connectiong the server";
-const char *INIT_CONNECTION = "http://impulses-iot.herokuapp.com/?action=init-connection&username=tmp&password=1234";
+const char *INIT_CONNECTION = "http://impulses-iot.herokuapp.com/?action=init-connection&username=tmp&password=12NUMBER_RELAYS4";
 const char *ssid = "TE-Data-BFF2B2";    // network name
 const char *password = "azharOTHMan7"; // network pass
 
@@ -27,8 +29,8 @@ String DATA_OUTPUT = "";
 boolean PORT_ADDED = false;
 boolean SERVER_CONN = false;
 
-uint8_t L_RELAY_STATE[3];
-uint8_t N_RELAY_STATE[3];
+uint8_t L_RELAY_STATE[NUMBER_RELAYS];
+uint8_t N_RELAY_STATE[NUMBER_RELAYS];
 
 SN74HC595 RELAYS;
 
@@ -155,7 +157,7 @@ void splitData(String ps, uint8_t* RELAYS){
     return;
   }
   else{
-    for(int j = 0; j < 3; j++){
+    for(int j = 0; j < NUMBER_RELAYS; j++){
       while((ps[i++]) != ':');
       RELAYS[j] = ps[i] - '0';
     }
@@ -164,7 +166,7 @@ void splitData(String ps, uint8_t* RELAYS){
 
 void Restore_Session(){
   EEPROM.begin(512);
-  for(int i = 0; i < 3; i++){
+  for(int i = 0; i < NUMBER_RELAYS; i++){
     L_RELAY_STATE[i] = EEPROM.read(i+1);
     N_RELAY_STATE[i] = L_RELAY_STATE[i];
     SN74HC595_Write(&RELAYS, i+1, N_RELAY_STATE[i]);
@@ -172,7 +174,7 @@ void Restore_Session(){
   EEPROM.end();
 }
 void UPDATE_RELAYS(uint8_t* RELAYs){
-  for(int i = 0; i < 3; i++){
+  for(int i = 0; i < NUMBER_RELAYS; i++){
     if(RELAYs[i] != L_RELAY_STATE[i]){
       EEPROM.begin(512);
       SN74HC595_Write(&RELAYS, i+1, RELAYs[i]);
@@ -189,7 +191,7 @@ int update_changes()
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.println("UPDATE THE CHANGES...");
-        String data = "&changes=" + form(changes, 3);
+        String data = "&changes=" + form(changes, NUMBER_RELAYS);
         http.begin(UPDATE_CHANGES + data);
         int httpCode = http.GET();
         if (httpCode > 0)
