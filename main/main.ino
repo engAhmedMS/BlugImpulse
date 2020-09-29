@@ -1,8 +1,9 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
-
+#include <WiFiClient.h>
+#include <WiFiAP.h>
+#include "esp32_touch.h"
 #include <EEPROM.h>
-
 #include "HAL/SN74HC595/SN74HC595_FUNs.h"
 
 #define Ser    2
