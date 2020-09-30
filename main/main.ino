@@ -95,7 +95,7 @@ void loop()
     }
     int p = touch.pressed();
     Serial.println(p);
-    slider(t_read);
+    slider(p);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
