@@ -99,7 +99,15 @@ void loop()
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     int p = touch.pressed();
+<<<<<<< HEAD
     slider(p);
+||||||| a6f37d2
+    Serial.println(p);
+    slider(t_read);
+=======
+    Serial.println(p);
+    slider(p);
+>>>>>>> 77ea5a4881dea1bbfa22c182c950f20a4060b83b
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
