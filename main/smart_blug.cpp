@@ -15,10 +15,11 @@ boolean SERVER_CONN = false;
 
 int changes[NUMBER_RELAYS] = {0, 0, 0}; // you have to update this array once the state is changeged
 
-CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s)
+CONNECTION_STATE station_init(const char* ssid, const char* password, int max_time_s, WIFI_SOURCE* wifi_source)
 {
   int counter = 0;
   CONNECTION_STATE ret = NOT_CONNECTED;
+  *wifi_source = STATION;
   WiFi.begin(ssid, password);
   Serial.print("\n\nConnecting");
   while (WiFi.status() != WL_CONNECTED)
@@ -30,8 +31,10 @@ CONNECTION_STATE station_init(const char* ssid, const char* password, int max_ti
       if(counter>max_time_s)
       {
          ret = NOT_CONNECTED;
+         *wifi_source = NO_SOURCE;
          break;
       }
+      
   }
 
   return ret;
@@ -168,14 +171,11 @@ char slider2(int* arr_read)
   return i;  
 }
 
-IPAddress accessPoint_init(const char* ssid, const char* password)
+IPAddress accessPoint_init(const char* ssid, const char* password, WIFI_SOURCE* wifi_source)
 {
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
-  
+  *wifi_source = ACCESS_POINT;
 
   return IP;
 }
-
-
-

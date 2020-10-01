@@ -1,15 +1,13 @@
-
 #include "smart_blug.h"
-#include <WiFi.h>
-#include <HTTPClient.h>
 #include "esp32_touch.h"
+
 
 extern int changes[NUMBER_RELAYS]; 
 //ESP32 as a station
 extern const char *ERROR_MSG;
 extern const char *INIT_CONNECTION;
-const char *ssid = "TE-Data-BFF2B2";    // network name
-const char *password = "azharOTHMan7"; // network pass
+const char *ssid = "Ahmed Mohammed";//"TE-Data-BFF2B2";    // network name
+const char *password = "am0113099454";//"azharOTHMan7"; // network pass
 
 extern String UPDATE_REQ;
 extern String END_CONNECTION;
@@ -38,8 +36,9 @@ int t_read[NUMBER_TOUCH_SENSORS];
 touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
 
 int counter = 0;
-
+IPAddress ip;
 CONNECTION_STATE connection_state;
+WIFI_SOURCE wifi_source;
 
 void setup()
 {
@@ -53,16 +52,18 @@ void setup()
     
     Restore_Session();
     
-    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME);
+    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
     if(connection_state == CONNECTED)
     {
+      wifi_source = STATION;
       Serial.println("\nConnected to the network ...");
     }
     else
     {
-      IPAddress IP = accessPoint_init(access_ssid, access_password);
-      Serial.print("AP IP address: ");
-      Serial.println(IP);
+      ip = accessPoint_init(access_ssid, access_password, &wifi_source);
+      wifi_source = ACCESS_POINT;
+      Serial.print("ACCES POINT IP = ");
+      Serial.println(ip);
       server.begin();
       Serial.println("Server started");
     }
@@ -70,6 +71,8 @@ void setup()
     touch.attach();
     ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_FREQ);
     ledcAttachPin(LED_PIN, PWM_CHANNEL);
+    pinMode(BUTTON, INPUT_PULLUP);
+    attachInterrupt(BUTTON, wifi_init, FALLING);
 }
 
 void loop()
@@ -86,16 +89,17 @@ void loop()
         }
         delay(200); // delay for updateing status ..
     }
-    splitData(DATA_OUTPUT, N_RELAY_STATE);
-    touch.read();
-    for(int i=0; i<NUMBER_TOUCH_SENSORS; i++)
+    else if(wifi_source != ACCESS_POINT)
     {
-      Serial.print(t_read[i]);
-      Serial.print(" -- ");
+      ip = accessPoint_init(access_ssid, access_password, &wifi_source);
+      Serial.print("ACCESS PION IP = ");
+      Serial.println(ip);
+      server.begin();
+      Serial.println("Server started");
     }
+    splitData(DATA_OUTPUT, N_RELAY_STATE);
     int p = touch.pressed();
-    Serial.println(p);
-    slider(t_read);
+    slider(p);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
@@ -145,5 +149,23 @@ int update_changes()
             SERVER_CONN = false;
         }
         http.end();
+    }
+}
+
+
+void wifi_init()
+{
+    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
+    if(connection_state == CONNECTED)
+    {
+      Serial.println("\nConnected to the network ...");
+    }
+    else
+    {
+      IPAddress IP = accessPoint_init(access_ssid, access_password, &wifi_source);
+      Serial.print("AP IP address: ");
+      Serial.println(IP);
+      server.begin();
+      Serial.println("Server started");
     }
 }
