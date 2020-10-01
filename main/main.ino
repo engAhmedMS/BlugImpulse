@@ -99,15 +99,7 @@ void loop()
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     int p = touch.pressed();
-<<<<<<< HEAD
     slider(p);
-||||||| a6f37d2
-    Serial.println(p);
-    slider(t_read);
-=======
-    Serial.println(p);
-    slider(p);
->>>>>>> 77ea5a4881dea1bbfa22c182c950f20a4060b83b
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }
@@ -157,23 +149,5 @@ int update_changes()
             SERVER_CONN = false;
         }
         http.end();
-    }
-}
-
-
-void wifi_init()
-{
-    connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
-    if(connection_state == CONNECTED)
-    {
-      Serial.println("\nConnected to the network ...");
-    }
-    else
-    {
-      IPAddress IP = accessPoint_init(access_ssid, access_password, &wifi_source);
-      Serial.print("AP IP address: ");
-      Serial.println(IP);
-      server.begin();
-      Serial.println("Server started");
     }
 }
