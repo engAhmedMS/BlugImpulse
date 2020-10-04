@@ -24,10 +24,11 @@
 #define PWM_RESOLUTION  (8)
 #define PWM_MAX (255)
 #define LED_PIN (23)
-//Helper macro fumction
+//Helper macro function
 #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
 //helper define to set max time for trying to connect esp as station
 #define MAX_CONNECTION_TIME 10
+
 #define BUTTON 3
 typedef enum
 {
