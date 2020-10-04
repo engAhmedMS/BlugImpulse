@@ -48,16 +48,6 @@ void setup()
 {
 //    EEPROM.begin(512);
     Serial.begin(115200);
-    delay(1000);
-    Serial.print("Configuring access point...");
-    /* You can remove the password parameter if you want the AP to be open. */
-    WiFi.softAP(access_ssid, access_password);
-  
-    IPAddress myIP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
-    server.begin();
-    Serial.println("HTTP server started");
 
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
