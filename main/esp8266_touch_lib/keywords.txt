@@ -14,8 +14,7 @@ touchSensor	KEYWORD1	touchSensor
 attach	KEYWORD2
 detach	KEYWORD2
 read	KEYWORD2
-setThreshold	KEYWORD2
-getThreshold	KEYWORD2
+
 
 #######################################
 # Constants (LITERAL1)

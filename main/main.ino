@@ -1,5 +1,5 @@
 #include "smart_blug.h"
-#include "esp32_touch.h"
+#include "esp8266_touch.h"
 
 
 extern int changes[NUMBER_RELAYS]; 
@@ -19,21 +19,25 @@ extern String DATA_OUTPUT;
 extern boolean PORT_ADDED;
 extern boolean SERVER_CONN;
 
-//ESP32 as access poin
-const char *access_ssid = "yourAP";
-const char *access_password = "yourPassword";
+//esp8266 touch parameters
+#define SCL_PIN 1
+#define SDA_PIN 2
+#define RST_PIN 3
+#define TOUCHPAD_SIZE 8
+bool touch_read[TOUCHPAD_SIZE];
+touchSensor touch(SCL_PIN, SDA_PIN, RST_PIN);
 
 uint8_t L_RELAY_STATE[NUMBER_RELAYS];
 uint8_t N_RELAY_STATE[NUMBER_RELAYS];
-
-WiFiServer server(80);
 SN74HC595 RELAYS;
-HTTPClient http;
 
-char touch_pins[NUMBER_TOUCH_SENSORS] = {T0, T3, T4, T5, T6, T7, T8, T9};
-int led_pins[NUMBER_TOUCH_SENSORS]   = {23, 22, 18, 5, 17, 16, 0, 2};
-int t_read[NUMBER_TOUCH_SENSORS];
-touchSensor touch(touch_pins, t_read, THRESHOLD, NUMBER_TOUCH_SENSORS);
+//ESP8266 as access poin
+const char *access_ssid = "yourAP";
+const char *access_password = "yourPassword";
+
+ESP8266WebServer server(80);
+
+HTTPClient http;
 
 int counter = 0;
 IPAddress ip;
@@ -69,10 +73,6 @@ void setup()
     }
     
     touch.attach();
-    ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_FREQ);
-    ledcAttachPin(LED_PIN, PWM_CHANNEL);
-    pinMode(BUTTON, INPUT_PULLUP);
-    attachInterrupt(BUTTON, wifi_init, FALLING);
 }
 
 void loop()
@@ -98,8 +98,16 @@ void loop()
       Serial.println("Server started");
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
-    int p = touch.pressed();
-    slider(p);
+    
+    touch.read(touch_read);
+    for(int i=0; i<TOUCHPAD_SIZE; i++)
+    {
+      Serial.print(touch_read[i]);
+      Serial.print(" -- ");
+      }
+      Serial.println();
+    //slider(p);
+    
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }

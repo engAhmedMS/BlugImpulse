@@ -1,15 +1,13 @@
 #ifndef SMART_BLUG_H__
 #define SMART_BLUG_H__
-#include <WiFi.h>
-#include <HTTPClient.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
-#include <WiFiAP.h>
-#include "esp32_touch.h"
+#include <ESP8266WebServer.h>
+#include "esp8266_touch.h"
 #include <EEPROM.h>
 #include "HAL/SN74HC595/SN74HC595_FUNs.h"
-#include <WebServer.h>
-#include <ESPmDNS.h>
-#include <Update.h>
+
 //Relay Shift register parameters
 #define Ser    2
 #define Rclk   4
@@ -19,11 +17,8 @@
 #define NUMBER_TOUCH_SENSORS 8
 #define THRESHOLD  20
 //PWM parameters
-#define PWM_CHANNEL (0)
-#define PWM_FREQ  (5000)
-#define PWM_RESOLUTION  (8)
 #define PWM_MAX (255)
-#define LED_PIN (23)
+#define PWM_PIN (23)
 //Helper macro function
 #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
 //helper define to set max time for trying to connect esp as station

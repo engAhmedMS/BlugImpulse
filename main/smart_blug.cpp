@@ -149,27 +149,13 @@ char slider(int p)
   {
     if(READ_BIT(p, i))
     {
-      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
+      analogWrite(PWM_PIN,(i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1) ) ); 
       break;
     }
   }
   return i;  
 }
 
-char slider2(int* arr_read)
-{
-  
-  int i=NUMBER_TOUCH_SENSORS-1;
-  for(; i>=0; i--)
-  {
-    if(arr_read[i]<THRESHOLD)
-    {
-      ledcWrite(PWM_CHANNEL, (i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1)));
-      break;
-    }
-  }
-  return i;  
-}
 
 IPAddress accessPoint_init(const char* ssid, const char* password, WIFI_SOURCE* wifi_source)
 {
