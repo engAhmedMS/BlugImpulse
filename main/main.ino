@@ -6,7 +6,7 @@ extern int changes[NUMBER_RELAYS];
 //ESP32 as a station
 extern const char *ERROR_MSG;
 extern const char *INIT_CONNECTION;
-const char *ssid = "Ahmed Mohammed";//"TE-Data-BFF2B2";    // network name
+const char *ssid = "ahmed mohammed";//"TE-Data-BFF2B2";    // network name
 const char *password = "am0113099454";//"azharOTHMan7"; // network pass
 
 extern String UPDATE_REQ;
@@ -48,13 +48,23 @@ void setup()
 {
 //    EEPROM.begin(512);
     Serial.begin(115200);
+    delay(1000);
+    Serial.print("Configuring access point...");
+    /* You can remove the password parameter if you want the AP to be open. */
+    WiFi.softAP(access_ssid, access_password);
+  
+    IPAddress myIP = WiFi.softAPIP();
+    Serial.print("AP IP address: ");
+    Serial.println(myIP);
+    server.begin();
+    Serial.println("HTTP server started");
 
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
     SN74HC595_INIT(&RELAYS);
     
-    Restore_Session();
+    //Restore_Session();
     
     connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
     if(connection_state == CONNECTED)
@@ -104,9 +114,9 @@ void loop()
     {
       Serial.print(touch_read[i]);
       Serial.print(" -- ");
-      }
+    }
       Serial.println();
-    //slider(p);
+      slider(touch_read);
     
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);

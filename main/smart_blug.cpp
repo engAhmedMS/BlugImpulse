@@ -141,13 +141,12 @@ String form(int *data, int n)
     return res;
 }
 
-char slider(int p)
+char slider(bool* arr_read)
 {
-  #define READ_BIT(REG, PIN) ((REG>>PIN)&1)
   int i=NUMBER_TOUCH_SENSORS-1;
   for(; i>=0; i--)
   {
-    if(READ_BIT(p, i))
+    if(arr_read[i])
     {
       analogWrite(PWM_PIN,(i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1) ) ); 
       break;

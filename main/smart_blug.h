@@ -15,7 +15,6 @@
 #define NUMBER_RELAYS 3
 //touch sensor parameters
 #define NUMBER_TOUCH_SENSORS 8
-#define THRESHOLD  20
 //PWM parameters
 #define PWM_MAX (255)
 #define PWM_PIN (23)
@@ -49,8 +48,7 @@ void Restore_Session();
 void UPDATE_RELAYS(uint8_t* RELAYs);
 int update_changes();
 String form(int *data, int n);
-char slider(int p);
-char slider2(int* arr_read);
+char slider(bool* arr_read);
 IPAddress accessPoint_init(const char* ssid, const char* password, WIFI_SOURCE* wifi_source);
 
 
