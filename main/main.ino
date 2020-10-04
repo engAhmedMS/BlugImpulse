@@ -3,7 +3,7 @@
 
 
 extern int changes[NUMBER_RELAYS]; 
-//ESP32 as a station
+//ESP8266 as a station
 extern const char *ERROR_MSG;
 extern const char *INIT_CONNECTION;
 const char *ssid = "ahmed mohammed";//"TE-Data-BFF2B2";    // network name
@@ -54,7 +54,7 @@ void setup()
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
     SN74HC595_INIT(&RELAYS);
     
-    //Restore_Session();
+    Restore_Session();
     
     connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
     if(connection_state == CONNECTED)
