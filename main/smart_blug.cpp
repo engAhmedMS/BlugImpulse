@@ -143,18 +143,17 @@ String form(int *data, int n)
 
 char slider(bool* arr_read)
 {
-  int i=NUMBER_TOUCH_SENSORS-1;
-  for(; i>=0; i--)
+  int level=NUMBER_TOUCH_SENSORS-1;
+  for(; level>=0; level--)
   {
-    if(arr_read[i])
+    if(arr_read[level])
     {
-      analogWrite(PWM_PIN,(i*PWM_MAX/(NUMBER_TOUCH_SENSORS-1) ) ); 
+      analogWrite(PWM_PIN,(level*PWM_MAX/(NUMBER_TOUCH_SENSORS-1) ) ); 
       break;
     }
   }
-  return i;  
+  return level;  
 }
-
 
 IPAddress accessPoint_init(const char* ssid, const char* password, WIFI_SOURCE* wifi_source)
 {
@@ -163,4 +162,17 @@ IPAddress accessPoint_init(const char* ssid, const char* password, WIFI_SOURCE* 
   *wifi_source = ACCESS_POINT;
 
   return IP;
+}
+
+void led_display(SN74HC595* LEDS, char level)
+{
+  int i;
+  for(i = 0; i < level; i++)
+  {
+      SN74HC595_Write(LEDS, i, HIGH);
+  }
+  for(; i< NUMBER_LEDS; i++)
+  {
+      SN74HC595_Write(LEDS, i, LOW);
+  }
 }

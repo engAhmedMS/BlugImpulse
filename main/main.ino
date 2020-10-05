@@ -1,6 +1,20 @@
 #include "smart_blug.h"
 #include "esp8266_touch.h"
 
+#define DEL 100
+//puuting small delay solved some serial monitors issues, but the problem still not completely solved
+#define PRINT(STR)    do{\
+                            Serial.print(STR);\
+                            delay(DEL);\
+                        }while(0);
+#define PRINTLN(STR)  do{\
+                            Serial.println(STR);\
+                            delay(DEL);\
+                        }while(0);
+//depugging end
+
+
+
 
 extern int changes[NUMBER_RELAYS]; 
 //ESP8266 as a station
@@ -18,12 +32,6 @@ extern String DATA_OUTPUT;
 
 extern boolean PORT_ADDED;
 extern boolean SERVER_CONN;
-
-//esp8266 touch parameters
-#define SCL_PIN 1
-#define SDA_PIN 2
-#define RST_PIN 3
-#define TOUCHPAD_SIZE 8
 bool touch_read[TOUCHPAD_SIZE];
 touchSensor touch(SCL_PIN, SDA_PIN, RST_PIN);
 
@@ -31,11 +39,13 @@ uint8_t L_RELAY_STATE[NUMBER_RELAYS];
 uint8_t N_RELAY_STATE[NUMBER_RELAYS];
 SN74HC595 RELAYS;
 
+SN74HC595 LEDS;
+
 //ESP8266 as access poin
 const char *access_ssid = "yourAP";
 const char *access_password = "yourPassword";
 
-ESP8266WebServer server(80);
+WiFiServer server(80);
 
 HTTPClient http;
 
@@ -48,64 +58,69 @@ void setup()
 {
 //    EEPROM.begin(512);
     Serial.begin(115200);
-
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
     SN74HC595_INIT(&RELAYS);
-    
-    Restore_Session();
-    
+
     connection_state = station_init(ssid, password, MAX_CONNECTION_TIME, &wifi_source);
     if(connection_state == CONNECTED)
     {
       wifi_source = STATION;
-      Serial.println("\nConnected to the network ...");
+      PRINTLN("\nConnected to the network ...");
+      server.begin();
+      PRINTLN("Server started");
+      PRINT("Use this URL to connect: ");
+      PRINT("http://");
+      PRINT(WiFi.localIP());
+      
     }
     else
     {
       ip = accessPoint_init(access_ssid, access_password, &wifi_source);
       wifi_source = ACCESS_POINT;
-      Serial.print("ACCES POINT IP = ");
-      Serial.println(ip);
+      PRINT("ACCES POINT IP = ");
+      PRINTLN(ip);
       server.begin();
-      Serial.println("Server started");
+      PRINTLN("Server started");
     }
-    
     touch.attach();
 }
 
 void loop()
-{
+{  
     if (WiFi.status() == WL_CONNECTED)
     {
         if (!SERVER_CONN){
-            Serial.println(get_port(ssid, password, &http) ? "connected to the server.." : ERROR_MSG);
+            PRINTLN(get_port(ssid, password, &http) ? "connected to the server.." : ERROR_MSG);        
         }
         if (SERVER_CONN)
         {
             get_data(&http);
-//            Serial.println(get_data() ? DATA_OUTPUT : ERROR_MSG);
+//            PRINTLN(get_data() ? DATA_OUTPUT : ERROR_MSG);
         }
         delay(200); // delay for updateing status ..
+
     }
     else if(wifi_source != ACCESS_POINT)
     {
       ip = accessPoint_init(access_ssid, access_password, &wifi_source);
-      Serial.print("ACCESS PION IP = ");
-      Serial.println(ip);
+      PRINT("ACCESS PION IP = ");
+      PRINTLN(ip);
       server.begin();
-      Serial.println("Server started");
+      PRINTLN("Server started");      
     }
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     
     touch.read(touch_read);
     for(int i=0; i<TOUCHPAD_SIZE; i++)
     {
-      Serial.print(touch_read[i]);
-      Serial.print(" -- ");
+      PRINT(touch_read[i]);
+      PRINT(" -- ");
+      
     }
-      Serial.println();
+
+      PRINTLN();
       slider(touch_read);
     
     UPDATE_RELAYS(N_RELAY_STATE);
@@ -143,17 +158,17 @@ int update_changes()
 {
     if (WiFi.status() == WL_CONNECTED)
     {
-        Serial.println("UPDATE THE CHANGES...");
+        PRINTLN("UPDATE THE CHANGES...");
         String data = "&changes=" + form(changes, NUMBER_RELAYS);
         http.begin(UPDATE_CHANGES + data);
         int httpCode = http.GET();
         if (httpCode > 0)
         {
-            Serial.println("CHNGES UPDATED ...");
+            PRINTLN("CHNGES UPDATED ...");
         }
         else
         {
-            Serial.println(ERROR_MSG);
+            PRINTLN(ERROR_MSG);
             SERVER_CONN = false;
         }
         http.end();
