@@ -1,7 +1,8 @@
 #include "smart_blug.h"
 #include "esp8266_touch.h"
 
-#define DEL 100
+#define DEL 0
+//debugging start
 //puuting small delay solved some serial monitors issues, but the problem still not completely solved
 #define PRINT(STR)    do{\
                             Serial.print(STR);\
@@ -11,10 +12,7 @@
                             Serial.println(STR);\
                             delay(DEL);\
                         }while(0);
-//depugging end
-
-
-
+//debugging end
 
 extern int changes[NUMBER_RELAYS]; 
 //ESP8266 as a station
@@ -56,8 +54,11 @@ WIFI_SOURCE wifi_source;
 
 void setup()
 {
+    
 //    EEPROM.begin(512);
     Serial.begin(115200);
+    Serial.println();
+    Serial.println();
     SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
     SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
     SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
@@ -84,7 +85,7 @@ void setup()
       server.begin();
       PRINTLN("Server started");
     }
-    touch.attach();
+    touch.attach();   
 }
 
 void loop()
@@ -113,16 +114,15 @@ void loop()
     splitData(DATA_OUTPUT, N_RELAY_STATE);
     
     touch.read(touch_read);
-    for(int i=0; i<TOUCHPAD_SIZE; i++)
+    for(int i=0; i<8; i++)
     {
       PRINT(touch_read[i]);
       PRINT(" -- ");
       
     }
 
-      PRINTLN();
-      slider(touch_read);
-    
+    PRINTLN();
+    slider(touch_read);
     UPDATE_RELAYS(N_RELAY_STATE);
     //end_connection(http);
 }

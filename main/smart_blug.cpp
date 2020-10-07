@@ -25,6 +25,7 @@ CONNECTION_STATE station_init(const char* ssid, const char* password, int max_ti
   while (WiFi.status() != WL_CONNECTED)
   {
       delay(1000);
+      ESP.wdtFeed();
       Serial.print(".");
       ret = CONNECTED;
       counter++;

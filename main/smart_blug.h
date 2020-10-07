@@ -28,9 +28,11 @@
 #define PWM_MAX (255)
 #define PWM_PIN (23)
 //esp8266 touch parameters
-#define SCL_PIN 6
-#define SDA_PIN 7
-#define RST_PIN 8
+//using pins between GPIO6 to GPIO11 introduced a bug
+//the controller stucks becaus of that and resets by wtd timer
+#define SCL_PIN 12
+#define SDA_PIN 13
+#define RST_PIN 14
 #define TOUCHPAD_SIZE 8
 
 typedef enum
