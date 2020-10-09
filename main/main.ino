@@ -3,7 +3,7 @@
 
 #define DEL 0
 //debugging start
-//puuting small delay solved some serial monitors issues, but the problem still not completely solved
+//putting small delay solved some serial monitors issues, but the problem still not completely solved
 #define PRINT(STR)    do{\
                             Serial.print(STR);\
                             delay(DEL);\
@@ -18,7 +18,7 @@ extern int changes[NUMBER_RELAYS];
 //ESP8266 as a station
 extern const char *ERROR_MSG;
 extern const char *INIT_CONNECTION;
-const char *ssid = "ahmed mohammed";//"TE-Data-BFF2B2";    // network name
+const char *ssid = "Ahmed mohammed";//"TE-Data-BFF2B2";    // network name
 const char *password = "am0113099454";//"azharOTHMan7"; // network pass
 
 extern String UPDATE_REQ;
