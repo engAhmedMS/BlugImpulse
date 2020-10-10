@@ -5,8 +5,9 @@
 #include <WiFiClient.h>
 #include <ESP8266Ping.h>
 #include <ESP8266HTTPClient.h>
+#include "HAL/SN74HC595/SN74HC595_FUNs.h"
 
-//Macro for debuggong and tracing code
+//Macro for debuggong and tracing code.
 #define PRINT_TOUCH() for(int i=0; i<NUMBER_TOUCH_SENSORS; i++)\
                         {\
                           Serial.print(touch_reads[i]);\
@@ -66,6 +67,10 @@ ESP8266WebServer server(80);
 #define TOUCH_RST_PIN 14
 bool touch_reads[NUMBER_TOUCH_SENSORS];
 touchSensor touch(TOUCH_SCL_PIN, TOUCH_SDA_PIN, TOUCH_RST_PIN);
+uint8_t L_RELAY_STATE[NUMBER_RELAYS];
+uint8_t N_RELAY_STATE[NUMBER_RELAYS];
+SN74HC595 RELAYS;
+SN74HC595 LEDS;
 
 char pin_states[3];
 
@@ -231,4 +236,17 @@ char slider(bool* arr_read)
     }
   }
   return level;  
+}
+
+void led_display(SN74HC595* LEDS, char level)
+{
+  int i;
+  for(i = 0; i < level; i++)
+  {
+      SN74HC595_Write(LEDS, i, HIGH);
+  }
+  for(; i< NUMBER_LEDS; i++)
+  {
+      SN74HC595_Write(LEDS, i, LOW);
+  }
 }
