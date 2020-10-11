@@ -1,6 +1,7 @@
 #ifndef ESP8266_TOUCH_H__
 #define ESP8266_TOUCH_H__
 #include "Arduino.h"
+#define PROPER_DELAY 62
 typedef enum
 {
   DIRECT_MODE,
@@ -23,6 +24,8 @@ class touchSensor
     touchSensor(char SCL_pin, char SDA_pin, char RST_pin);
     
     void attach();
+
+    void reset();
     
     void read(bool* keyState);
   
