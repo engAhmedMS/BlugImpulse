@@ -13,9 +13,11 @@ touchSensor	KEYWORD1	touchSensor
 #######################################
 attach	KEYWORD2
 detach	KEYWORD2
+reset   KEYWORD2
 read	KEYWORD2
 
 
 #######################################
 # Constants (LITERAL1)
 #######################################
+PROPER_DELAY 62 us
