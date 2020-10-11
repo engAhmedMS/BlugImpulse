@@ -54,6 +54,7 @@ void touchSensor::read(char KeyState){
         digitalWrite(SCL_pin,LOW);
         delayMicroseconds(PROPER_DELAY);
     }
+    // to check if there any change in the level or just return the last state "level"
     if(tmp){
         // after declaring the lastkeystate in the class definition
         // to get the highst one bit from the left
