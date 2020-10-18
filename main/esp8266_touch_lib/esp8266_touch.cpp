@@ -40,6 +40,33 @@ void touchSensor::read(bool* keyState)
     // if the reading is zeros then we should keep the last reading ...
 }
 
+// note this is another implemtation 
+/*
+
+void touchSensor::read(char KeyState){
+    reset();
+    char tmp = 0;
+    for(int i=0;i<8;i++){
+        // its more safe to read the data after the rising edge
+        digitalWrite(SCL_pin,HIGH);
+        tmp |= (digitalRead(SDA_pin) << i);
+        delayMicroseconds(PROPER_DELAY);
+        digitalWrite(SCL_pin,LOW);
+        delayMicroseconds(PROPER_DELAY);
+    }
+    // to check if there any change in the level or just return the last state "level"
+    if(tmp){
+        // after declaring the lastkeystate in the class definition
+        // to get the highst one bit from the left
+        for(int i=0;i<8;i++) lastKeyState = ((tmp >> i) & 1) ? i : lastKeyState;
+    }
+    Keystate = lastKeystate;
+    // this explicity will return the level you want 
+}
+
+*/
+
+
 
 
 
