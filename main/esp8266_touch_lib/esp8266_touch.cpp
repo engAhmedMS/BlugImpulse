@@ -24,7 +24,8 @@ void touchSensor::reset(){
     digitalWrite(RST_pin,LOW);
 }
 
-
+#define SAFE
+#ifndef SAFE
 void touchSensor::read(bool* keyState)
 {
     // reset is important to always get the pins in order
@@ -41,7 +42,7 @@ void touchSensor::read(bool* keyState)
 }
 
 // note this is another implemtation 
-/*
+#else
 
 void touchSensor::read(char KeyState){
     reset();
@@ -64,7 +65,7 @@ void touchSensor::read(char KeyState){
     // this explicity will return the level you want 
 }
 
-*/
+#endif
 
 
 
