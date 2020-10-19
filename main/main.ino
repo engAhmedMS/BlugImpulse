@@ -1,80 +1,122 @@
-// this differs from the other example in interperting the changes of the pins
 #include "smart_blug.h"
+ESP8266WebServer server(80);                 //create a webserver object that listens for HTTP request on port
+HTTPClient http;
 
-const char *ERROR_MSG = "Error occured on connected the server";
-const char *ssid      = "ahmed mohammed";      // adding the username
+#define SLEEP_TIME  1e6
+const char *ssid      = "ahmed mohammed";    // adding the username
 const char *password  = "am0113099454";      // adding the password 
- 
+const int   timeout   = 5000;  
+
 const char *ssid_ac = "test1";
 const char *pw_ac   = "11111111";
 const char *HOME    = "<h1> Hello , world!</h1>";
-const char *IP      = "www.impulses-iot.herokuapp.com";
-const int timeout   = 5000;  
- 
- 
+
+//parsing_data() parameters
+String data     = "";
+char pin_states[3];
+
+//PWM parameters
+#define PWM_MAX (255)
+#define PWM_PIN (23)
+//esp8266 touch parameters
+//using pins between GPIO6 to GPIO11 introduced a bug
+//the controller stucks becaus of that and resets by wtd timer
+#define NUMBER_TOUCH_SENSORS 8
+#define TOUCH_SCL_PIN 12
+#define TOUCH_SDA_PIN 13
+#define TOUCH_RST_PIN 14
+bool touch_reads[NUMBER_TOUCH_SENSORS];
+touchSensor touch(TOUCH_SCL_PIN, TOUCH_SDA_PIN, TOUCH_RST_PIN);
+
+//led Shift register parameters
+#define Ser_LED    2
+#define Rclk_LED   3
+#define Srclk_LED  4
+#define NUMBER_LEDS 8
+SN74HC595 LEDS;
+
+//get_data() parameters
 String URL      = "http://i...content-available-to-author-only...p.com/" ;               //"http://i...content-available-to-author-only...p.com/"; 
 String ROOM     = "1111";
 String USERNAME = "test";
 String PASSWORD = "1111";
 String AUTH     = "&username=" + USERNAME + "&password=" + PASSWORD + "&room=" + ROOM;
 String GET_REQ  = "?action=get"  + AUTH;
-String POST_REQ = "?action=post" + AUTH + "&changes=";       // + changes made to be sent to the server 
-String data     = "";
-String changes  = "";
+const char *ERROR_MSG = "Error occured on connected the server";
 
-HTTPClient http;
-ESP8266WebServer server(80);
-SN74HC595 LEDS;
-SN74HC595 RELAYS;
-uint8_t L_RELAY_STATE[NUMBER_RELAYS];
-uint8_t N_RELAY_STATE[NUMBER_RELAYS];
-char pin_states[3];
+//variable to indicate if wifi connected as station or access point
+WIFI_SOURCE wifi_source = STATION;
 
-
-void setup(){
-  SN74HC595_INIT_PIN(&RELAYS, SER, Ser);
-  SN74HC595_INIT_PIN(&RELAYS, RCLK, Rclk);
-  SN74HC595_INIT_PIN(&RELAYS, SRCLK, Srclk);
-  SN74HC595_INIT(&RELAYS);
-  
+void setup() 
+{
+  Serial.begin(115200);  
   SN74HC595_INIT_PIN(&LEDS, SER, Ser_LED);
   SN74HC595_INIT_PIN(&LEDS, RCLK, Rclk_LED);
   SN74HC595_INIT_PIN(&LEDS, SRCLK, Srclk_LED);
   SN74HC595_INIT(&LEDS);
-  
-  Serial.begin(115200);
-  WiFi.begin(ssid,password);
-  Serial.print("\n\nConntecting");
-  int cur = millis();
-  while(WiFi.status() != WL_CONNECTED){
-    delay(100);
-    Serial.print(".");
-    if(millis() - cur >= timeout){
-      Serial.println("canno't connect to the network :(");
-      Serial.println("init the access point");
-      initAccessPoint(ssid_ac, pw_ac);   
-      break;
-    }
+  bool wifi_status = initStation(ssid, password, timeout);
+  if(wifi_status!= CONNECTED)
+  {
+    initAccessPoint(ssid_ac, pw_ac, server);
+    start_server();
   }
-  Serial.println("\nConnected to the network");
-
+  //OTA
+  else
+  {
+      ArduinoOTA.onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH) {
+        type = "sketch";
+      } else { // U_FS
+        type = "filesystem";
+      }
+  
+      // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+      Serial.println("Start updating " + type);
+    });
+    ArduinoOTA.onEnd([]() {
+      Serial.println("\nEnd");
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) {
+        Serial.println("Auth Failed");
+      } else if (error == OTA_BEGIN_ERROR) {
+        Serial.println("Begin Failed");
+      } else if (error == OTA_CONNECT_ERROR) {
+        Serial.println("Connect Failed");
+      } else if (error == OTA_RECEIVE_ERROR) {
+        Serial.println("Receive Failed");
+      } else if (error == OTA_END_ERROR) {
+        Serial.println("End Failed");
+      }
+    });
+    ArduinoOTA.begin();
+    Serial.println("Ready");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());  
+  }
   touch.attach();
- 
 }
- 
-void loop(){
- 
-  if(WiFi.status() == WL_CONNECTED && (wifi_source==STATION)){
+
+void loop() 
+{
+  
+    if(WiFi.status() == WL_CONNECTED && (wifi_source==STATION)){
+      ArduinoOTA.handle();
     //if(!Ping.ping(IP)){
     //  initAccessPoint();
     //  goto a;
     //}
     Serial.println("Getting data from the server __room__ " + ROOM);
     // getting the data to the global varible data
-    int res = get_data();
+    int res = get_data(http, URL, GET_REQ, data);
     if(!res){ 
       Serial.println(ERROR_MSG);
-      initAccessPoint(ssid_ac, pw_ac);
+      initAccessPoint(ssid_ac, pw_ac, server);
       wifi_source = ACCESS_POINT;
       goto a;
     }
@@ -87,132 +129,24 @@ void loop(){
   b:;
 
   touch.read(touch_reads);
-  PRINT_TOUCH();
-  slider(touch_reads);
-}
- 
-int get_data(){
-  if(WiFi.status() == WL_CONNECTED){
-    Serial.println("sending GET request to the server..");
-    http.begin( URL + GET_REQ );
-    int HTTP_CODE_STATUS = http.GET();
-    if(HTTP_CODE_STATUS > 0){
-      data = http.getString();
-      Serial.println(" incominng data :: " + data );
-      http.end();
-      return 1;
-    }
-    http.end();
-  }
-  return 0;
+  char level = slider(touch_reads, NUMBER_TOUCH_SENSORS, PWM_PIN, PWM_MAX);
+  led_display(&LEDS, level, NUMBER_LEDS);
+
+   ESP.deepSleep(SLEEP_TIME); 
 }
 
-// note : you can add a new route or just a function to handle a request to retry to connect to the internet
-void root(){
+
+
+
+
+void root()
+{
   Serial.println("GET request to /");
   server.send(200,"text/html",HOME);
 }
- 
-IPAddress initAccessPoint(String ssid_ac, String pw_ac){
-  WiFi.softAP(ssid_ac,pw_ac);
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print("access point active on IP :: ");
-  Serial.print(myIP);
+
+void start_server()
+{
   server.on("/",root);
   server.begin();
-  return myIP;
-}
-
- 
-//int post_data(){
-//    if(WiFi.status() == WL_CONNECTED){
-//        Serial.println("sending POST request to the server..");
-//        if(changes == "") pack_data();
-//        http.begin( URL + POST_REQ + changes);
-//        int HTTP_CODE_STATUS = http.GET();
-//        if(HTTP_CODE_STATUS > 0){
-//            Serial.println(" changes posted successfully ");
-//            http.end();
-//            return 1;
-//        }
-//        http.end();
-//    }
-//    return 0;
-//}
- 
-// simple parseing function ,
-// the incomming data is in the form of CSV  ---> 0,0,1
-int parse_data(){
-    char tmp[3],ptr = 0;
-    for(int i=0;i<data.length();i++)
-    {
-        if(data[i] == ',') ptr++;
-        else tmp[ptr] = data[i];
-    }
-    for(int i=0;i<3;i++)
-    {
-        pin_states[i] = tmp[i] - '0';
-    }
-    Serial.println("data parsed successfully ..");
-    return 1;
-}
- 
-//int pack_data(){
-//    changes = "";
-//    for(int i=0;i<3;i++)
-//    changes += String(pin_states[i]) + ( i==2 ? "" : ",");
-//    Serial.println(changes);
-//    Serial.println("data packed successfully ..");
-//    return 1;
-//}
-//
-//int update(){
-//    int nz = 0;
-//    for(int i=0;i<3;i++){
-//        if(toggle[i]){
-//            pin_states[i] = pin_states[i] == 1 ? 0 : 1;
-//            toggle[i] = 0;
-//        }else nz++;
-//    }
-//    // check if ther is any updates
-//    if(nz == 3) return 0;
-//    // order them according to the most priority
-//    write();
-//    pack_data();
-//    post_data();
-//    return 1;
-//}
-//
-
-
-//int write(){
-//    for(int i=0;i<3;i++) digitalWrite(pins[i],pin_states[i]);
-//    return 1;
-//}
-
-char slider(bool* arr_read)
-{
-  int level=NUMBER_TOUCH_SENSORS-1;
-  for(; level>=0; level--)
-  {
-    if(arr_read[level])
-    {
-      analogWrite(PWM_PIN,(level*PWM_MAX/(NUMBER_TOUCH_SENSORS-1) ) ); 
-      break;
-    }
-  }
-  return level;  
-}
-
-void led_display(SN74HC595* LEDS, char level)
-{
-  int i;
-  for(i = 0; i < level; i++)
-  {
-      SN74HC595_Write(LEDS, i, HIGH);
-  }
-  for(; i< NUMBER_LEDS; i++)
-  {
-      SN74HC595_Write(LEDS, i, LOW);
-  }
 }

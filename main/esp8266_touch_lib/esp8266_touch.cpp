@@ -43,7 +43,6 @@ void touchSensor::read(bool* keyState)
 
 // note this is another implemtation 
 #else
-
 void touchSensor::read(char KeyState){
     reset();
     char tmp = 0;
